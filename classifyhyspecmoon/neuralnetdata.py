@@ -4,6 +4,9 @@ Here we will load the data required for our neural net. Processing is available 
 import keras
 import numpy as np
 import h5py as h5
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+
 from .create_labels import spa_label
 
 def descend_obj(obj,sep='\t'):
@@ -45,6 +48,7 @@ class NeuralNetData():
 
             self.rawspec = include_data(f,'VectorDatasets/RawSpectra',flip=True)
             self.smoothspec = include_data(f,'VectorDatasets/SmoothSpectra_GNDTRU',flip=True)
+            self.X = np.moveaxis(self.smoothspec.reshape(self.smoothspec.shape[0],self.smoothspec.shape[1]*self.smoothspec.shape[2]),0,1)
             self.shadowmap = include_data(f,'ShadowMaps/lowsignal_shadows',flip='y')
 
             self.wvl = f.attrs['smooth_wavelengths']
@@ -84,17 +88,28 @@ class NeuralNetData():
         self.labeled_data[background_label==0] = n
         label_dict['background'] = n
         self.labeled_data[self.shadowmap==1] = 0
+        self.Y = self.labeled_data.flatten()
         
         self.num_labels = len(np.unique(self.labeled_data))
 
-    def minmax_normalization(self):
+    def split_train_test(self) -> None:
         """
-        Method for normalizing the data from 0 to 1
+        Method for splitting our data into testing and training sets
         """
-        self.labeled_data 
+        self.X_train,self.X_test,self.Y_train,self.Y_test = train_test_split(self.X,self.Y,test_size=0.25,random_state=42)
+
+    def minmax_normalization(self,minmaxrange:'tuple') -> None:
+        """
+        Method for normalizing the data to the minmaxrange
+        """
+        scaler = MinMaxScaler(minmaxrange,copy=False)
+        scaler.fit(self.X_train)
+        
+        scaler.transform(self.X_train)
+        scaler.transform(self.X_test)
+        
     
-    def split_train_test(self):
-        pass
+
     
 
         

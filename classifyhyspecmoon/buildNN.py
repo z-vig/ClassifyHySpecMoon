@@ -20,11 +20,12 @@ class MyHyperParameters():
         batch_size // Number of entries (pixels) seen at a time
         nepochs // Number of times the model sees the training data
     """
-    def __init__(self,nlyrs:'float',npl:'list',lrate:'float') -> None:
+    def __init__(self,nlyrs:'float',npl:'list',lrate:'float',batch_size:'float',nepochs:'float') -> None:
         self.nlyrs = nlyrs
         self.npl = npl
         self.lrate = lrate
-
+        self.batch_size = batch_size
+        self.nepochs = nepochs
 
 
 def run_mlp(
@@ -37,7 +38,7 @@ def run_mlp(
 
     model = keras.Sequential()
 
-    model.add(keras.Input(shape=(data.num_pixels,),name='Input_Layer'))
+    model.add(keras.Input(shape=(data.X_train.shape[0],),name='Input_Layer'))
 
     for i in range(0,hpms.nlyrs):
         model.add(keras.layers.Dense(units=hpms.npl[i],activation=keras.activations.relu))
@@ -49,4 +50,18 @@ def run_mlp(
         loss='mse'
     )
 
-    return model    
+    history = model.fit(
+    x=np.moveaxis(data.X_train,0,1),
+    y=np.moveaxis(data.Y_train,0,1),
+    batch_size=hpms.batch_size,
+    epochs=hpms.nepochs,
+    verbose='auto',
+    validation_split=0.1,
+    validation_data=None,
+    shuffle=True,
+    class_weight=None,
+    sample_weight=None,
+    initial_epoch=0,
+    )
+
+    return model
