@@ -38,12 +38,12 @@ def run_mlp(
 
     model = keras.Sequential()
 
-    model.add(keras.Input(shape=(data.X_train.shape[0],),name='Input_Layer'))
+    model.add(keras.Input(shape=(data.X_train.shape[1],),name='Input_Layer'))
 
     for i in range(0,hpms.nlyrs):
         model.add(keras.layers.Dense(units=hpms.npl[i],activation=keras.activations.relu))
     
-    model.add(keras.layers.Dense(units=data.num_labels))
+    model.add(keras.layers.Dense(units=1,activation=keras.activations.relu))
 
     model.compile(
         optimizer = keras.optimizers.SGD(learning_rate=hpms.lrate),
@@ -51,8 +51,8 @@ def run_mlp(
     )
 
     history = model.fit(
-    x=np.moveaxis(data.X_train,0,1),
-    y=np.moveaxis(data.Y_train,0,1),
+    x=data.X_train,
+    y=data.Y_train,
     batch_size=hpms.batch_size,
     epochs=hpms.nepochs,
     verbose='auto',
@@ -64,4 +64,8 @@ def run_mlp(
     initial_epoch=0,
     )
 
-    return model
+    predictions = model.predict(
+        x = data.X_test
+    )
+
+    return model,history,predictions

@@ -50,6 +50,7 @@ class NeuralNetData():
             self.smoothspec = include_data(f,'VectorDatasets/SmoothSpectra_GNDTRU',flip=True)
             self.X = np.moveaxis(self.smoothspec.reshape(self.smoothspec.shape[0],self.smoothspec.shape[1]*self.smoothspec.shape[2]),0,1)
             self.shadowmap = include_data(f,'ShadowMaps/lowsignal_shadows',flip='y')
+            self.contrem = include_data(f,'VectorDatasets/2pContRem_Smooth_GNDTRU')
 
             self.wvl = f.attrs['smooth_wavelengths']
 
