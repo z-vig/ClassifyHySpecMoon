@@ -43,7 +43,7 @@ def run_mlp(
     for i in range(0,hpms.nlyrs):
         model.add(keras.layers.Dense(units=hpms.npl[i],activation=keras.activations.relu))
     
-    model.add(keras.layers.Dense(units=1,activation=keras.activations.relu))
+    model.add(keras.layers.Dense(units=1))
 
     model.compile(
         optimizer = keras.optimizers.SGD(learning_rate=hpms.lrate),

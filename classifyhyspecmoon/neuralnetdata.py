@@ -90,6 +90,10 @@ class NeuralNetData():
         label_dict['background'] = n
         self.labeled_data[self.shadowmap==1] = 0
         self.Y = self.labeled_data.flatten()
+        coord_grid = np.meshgrid(np.arange(0,self.smoothspec.shape[2]),np.arange(0,self.smoothspec.shape[1]))
+        
+        self.x_coords = coord_grid[0]
+        self.y_coords = coord_grid[1]
         
         self.num_labels = len(np.unique(self.labeled_data))
 
@@ -97,7 +101,15 @@ class NeuralNetData():
         """
         Method for splitting our data into testing and training sets
         """
-        self.X_train,self.X_test,self.Y_train,self.Y_test = train_test_split(self.X,self.Y,test_size=0.25,random_state=42)
+        label_coord_array = np.concatenate([self.Y[:,np.newaxis],self.x_coords.flatten()[:,np.newaxis],self.y_coords.flatten()[:,np.newaxis]],axis=1)
+        self.X_train,self.X_test,lc_train,lc_test = train_test_split(self.X,label_coord_array,test_size=0.25,random_state=42)
+
+        self.Y_train = lc_train[:,0]
+        self.Y_test = lc_test[:,0]
+        self.xcoord_train = lc_train[:,1]
+        self.xcoord_test = lc_test[:,1]
+        self.ycoord_train = lc_train[:,2]
+        self.ycoord_test = lc_test[:,2]
 
     def minmax_normalization(self,minmaxrange:'tuple') -> None:
         """
