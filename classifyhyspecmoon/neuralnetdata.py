@@ -66,30 +66,38 @@ class NeuralNetData():
         Method for labeling our data. The possible label types are:
             "Spectral_Angle" // Cosine similarity metric
         """
-        self.labeled_data = np.zeros(self.smoothspec.shape[1:])
-        print(self.labeled_data.shape)
+        self.labeled_data = np.zeros(self.smoothspec.shape[1:]) #empty array
+
         label_dict = {'shadow':0}
         label_maps = []
+
+        #Case for spectral angle mapping
         if label_type == 'Spectral_Angle':
             n = 1
-            for key in refspec_dict.keys():
+            for key in refspec_dict.keys(): #iterate through reference spectra
                 label_dict[key] = n
                 lmap = spa_label(self.smoothspec,refspec_dict[key][0],refspec_dict[key][1],self.shadowmap)
-                self.labeled_data[lmap==1] = n
+
+                self.labeled_data[lmap==1] = n #labeling empty array
+
                 label_maps.append(lmap)
                 n+=1
         elif label_type == None:
             pass
 
+        #Getting every non-labeled pixel
         background_label = np.zeros(self.labeled_data.shape)
         for lmap in label_maps:
             background_label[lmap==1] = 1
 
-        print(n)
         self.labeled_data[background_label==0] = n
         label_dict['background'] = n
         self.labeled_data[self.shadowmap==1] = 0
         self.Y = self.labeled_data.flatten()
+
+        if len(self.Y.shape) == 1: #ensuring all Y dimensions = 2
+            self.Y = self.Y[:,np.newaxis]
+
         coord_grid = np.meshgrid(np.arange(0,self.smoothspec.shape[2]),np.arange(0,self.smoothspec.shape[1]))
         
         self.x_coords = coord_grid[0]
@@ -97,19 +105,34 @@ class NeuralNetData():
         
         self.num_labels = len(np.unique(self.labeled_data))
 
+    def onehot_encoding(self) -> None:
+        """
+        Here we encode our transformed data via the one-hot encoding scheme.
+        """
+        squeezed_Y = np.squeeze(self.Y)
+        Y_enc = np.zeros((squeezed_Y.size,int(squeezed_Y.max()+1)),dtype=int)
+        Y_enc[np.arange(squeezed_Y.size),squeezed_Y.astype(int)] = 1
+        self.Y = Y_enc
+
     def split_train_test(self) -> None:
         """
         Method for splitting our data into testing and training sets
         """
-        label_coord_array = np.concatenate([self.Y[:,np.newaxis],self.x_coords.flatten()[:,np.newaxis],self.y_coords.flatten()[:,np.newaxis]],axis=1)
-        self.X_train,self.X_test,lc_train,lc_test = train_test_split(self.X,label_coord_array,test_size=0.25,random_state=42)
+        label_coord_array = np.concatenate([self.Y,self.x_coords.flatten()[:,np.newaxis],self.y_coords.flatten()[:,np.newaxis]],axis=1)
+        self.X_train,self.X_test,lc_train,lc_test = train_test_split(self.X,label_coord_array,test_size=0.25,random_state=43)
 
-        self.Y_train = lc_train[:,0]
-        self.Y_test = lc_test[:,0]
-        self.xcoord_train = lc_train[:,1]
-        self.xcoord_test = lc_test[:,1]
-        self.ycoord_train = lc_train[:,2]
-        self.ycoord_test = lc_test[:,2]
+        self.Y_train = lc_train[:,0:self.Y.shape[1]]
+        self.Y_test = lc_test[:,0:self.Y.shape[1]]
+        self.xcoord_train = lc_train[:,-2]
+        self.xcoord_test = lc_test[:,-2]
+        self.ycoord_train = lc_train[:,-1]
+        self.ycoord_test = lc_test[:,-1]
+
+        _,self.train_distribution = np.unique(np.argmax(self.Y_train,axis=1),return_counts=True)
+        _,self.test_distribution = np.unique(np.argmax(self.Y_test,axis=1),return_counts=True)
+
+    def get_validation_data(self) -> None:
+        self.X_train_noval,self.X_val,self.Y_train_noval,self.Y_val = train_test_split(self.X_train,self.Y_train,test_size=0.1,random_state=42)
 
     def minmax_normalization(self,minmaxrange:'tuple') -> None:
         """
@@ -120,6 +143,8 @@ class NeuralNetData():
         
         scaler.transform(self.X_train)
         scaler.transform(self.X_test)
+
+        return scaler
         
     
 
