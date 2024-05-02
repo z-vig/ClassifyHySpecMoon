@@ -32,15 +32,32 @@ def include_data(h5obj,h5obj_path,flip=True):
 
 class NeuralNetData():
     """
-    Class that defines data for input into the neural net
+    Class that defines data for input into the neural net. Most of the methods do not return new data outputs, but rather mutate the data attributes within the NeuralNetData instance.
 
     Methods:
         h5dump() // Allows easy visualization of input h5 data file
-
+        label_data() // Labels data by various techniques; currently, Spectral Angle Mapping is the only implemented technique
+        onehot_encoding() // Encodes data labels via onehot encoding
+        split_train_test() // Splits X and Y into training and testing datasets
+        get_validation_data() // Further splits the training data into a training set and a validation set
+        minmax_normalization() // Scales data from 0 to 1
+        
     Attributes:
         h5path // Gives the same string that was input to find the h5 file
         rawspec // Gives the raw spectral data
         smoothspec // Gives the smoothed spectral data
+        contrem // Gives the contrinuum-removed spectral data
+        X // Data in the form of a m x n array (where m is the number of samples and n is the number of spectral bands) for use in a neural network
+        Y // Data labels in the form of an m x k array (k is the number of classes)
+        X_train // Training data
+        Y_train // Training labels
+        X_test // Testing data
+        Y_test // Testing labels
+        X_train_noval // Training data with validation data removed
+        Y_train_noval // Traininglabels with validation data removed
+        X_val // Validation data
+        Y_val // Validation labels
+
     """
     def __init__(self,h5path) -> None:
         self.h5path = h5path
