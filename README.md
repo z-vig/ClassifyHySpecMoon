@@ -22,4 +22,4 @@ To download the data, either download and mosaic the [images](https://pds.nasa.g
 
 To initialize the package, use python 3.11 and create a virtual environment fromthe requirements .txt file by running the following in a clean directory in Windows Powershell (or the equivalent for other OS).
 
-`pip install .venv
+`pip install .venv`
